@@ -9,10 +9,7 @@ class AuthService {
   //'http://103.59.160.119:3240/api'
 
   // This is your postData function, now as a method of AuthService
-  Future<Map<String, dynamic>?> loginUser(
-    String username,
-    String password,
-  ) async {
+  Future<String> loginUser(String username, String password) async {
     // Renamed for clarity
     final url = Uri.parse('http://103.59.160.119:3240/api/login');
     final Map<String, String> fields = {
@@ -40,6 +37,7 @@ class AuthService {
           // 3. Save the token
           final TokenStorageService tokenStorage = TokenStorageService();
           await tokenStorage.saveToken(accessToken, tokenType);
+          await tokenStorage.saveUsername(username); // Add this
           print('Token saved successfully!');
         } else {
           // Handle cases where token or type might be missing in a successful response
@@ -51,7 +49,7 @@ class AuthService {
             message: 'Token data missing in server response.',
           );
         }
-        return responseData;
+        return "ok";
       } else if (response.statusCode == 401 || response.statusCode == 403) {
         print('Login failed: ${response.statusCode} - ${response.body}');
         // Consider throwing a custom exception or returning a specific error object

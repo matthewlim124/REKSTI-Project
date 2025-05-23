@@ -1,21 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart'; // For date formatting
+import 'package:reksti_app/model/Shipment.dart';
+import 'package:reksti_app/services/logic_service.dart';
+import 'package:reksti_app/Exception.dart';
+import 'package:reksti_app/services/token_service.dart';
+import 'package:reksti_app/screens/historidetail_page.dart';
 // http and dart:convert are removed as we are omitting API calls for this version
 
 // Model for an order item
-class OrderItem {
-  final String id;
-  final String productName;
-  final DateTime orderDate;
+// class OrderItem {
+//   final String id;
+//   final String productName;
+//   final DateTime orderDate;
 
-  OrderItem({
-    required this.id,
-    required this.productName,
-    required this.orderDate,
-  });
-}
+//   OrderItem({
+//     required this.id,
+//     required this.productName,
+//     required this.orderDate,
+//   });
+// }
 
 class HistoriPesananPage extends StatefulWidget {
   const HistoriPesananPage({super.key});
@@ -29,20 +33,24 @@ class _HistoriPesananPageState extends State<HistoriPesananPage> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   final TextEditingController _dateController = TextEditingController();
+  final _logicService = LogicService();
 
-  List<OrderItem> _ordersList = [];
+  List<ShipmentItem> _ordersList = [];
+  bool _isLoading = false; // Changed from _isLoadingOrders
+  String _errorMessage = ''; // Changed from _orderErrorMessage
+
+  final TokenStorageService tokenStorage = TokenStorageService();
 
   @override
   void initState() {
     super.initState();
-    // Optionally, select today by default and show its mock orders
-    // _selectedDay = _focusedDay;
-    // _updateDateController(_selectedDay!);
-    // _loadMockOrdersForDate(_selectedDay!);
-    // Or leave _selectedDay as null initially to show "Pilih tanggal..."
     if (_selectedDay == null) {
       _dateController.text = 'Choose Date';
     }
+    // Optionally, fetch orders for the initial selected day (e.g., today)
+    // _selectedDay = _focusedDay;
+    // _updateDateController(_selectedDay!);
+    // _fetchOrdersForDate(_selectedDay!);
   }
 
   @override
@@ -86,30 +94,71 @@ class _HistoriPesananPageState extends State<HistoriPesananPage> {
     }
   }
 
-  // This function will now just load mock data based on the selected date
-  void _loadMockOrdersForDate(DateTime date) {
+  Future<void> _fetchOrdersForDate(DateTime date) async {
     if (!mounted) return;
     setState(() {
-      // Simulate fetching orders: show orders for even days, none for odd days
-      if (date.day % 2 == 0) {
-        _ordersList = [
-          OrderItem(
-            id: '1',
-            productName: 'Panadol ActiFast (Mock)',
-            orderDate: date,
-          ),
-          OrderItem(
-            id: '2',
-            productName: 'Obat Batuk Anak (Mock)',
-            orderDate: date,
-          ),
-          OrderItem(id: '3', productName: 'Vitamin C (Mock)', orderDate: date),
-        ];
-      } else {
-        _ordersList = [];
-      }
+      _isLoading = true;
+      _errorMessage = '';
+      _ordersList = [];
     });
+
+    try {
+      // --- REPLACE WITH YOUR ACTUAL SERVICE CALL ---
+      // final List<dynamic> rawShipmentData = await _logicService.getOrder(date);
+      // Note: You might need to pass the 'date' to your getOrder method
+      // For now, using the mock JSON structure you provided, filtered by the selected date conceptually.
+
+      print(
+        "Fetching orders for date: ${DateFormat('yyyy-MM-dd').format(date)}",
+      );
+      // This is where you'd call your actual _logicService.getOrder()
+      // The response should be List<dynamic> as per your JSON.
+
+      // Simulating what your _logicService.getOrder() might do,
+      // including the JSON structure and a slight delay.
+
+      List<dynamic> rawShipmentData = await _logicService.getOrder();
+
+      // Filter mock data by the selected date (for simulation purposes)
+      // In a real scenario, your API would handle this filtering.
+      final String formattedSelectedDate = DateFormat(
+        'yyyy-MM-dd',
+      ).format(date);
+      rawShipmentData =
+          rawShipmentData
+              .where(
+                (shipment) =>
+                    shipment['shipping_date'] == formattedSelectedDate,
+              )
+              .toList();
+
+      if (!mounted) return;
+
+      final List<Shipment> shipments =
+          rawShipmentData.map((data) => Shipment.fromJson(data)).toList();
+
+      List<ShipmentItem> allItems = [];
+      for (var shipment in shipments) {
+        allItems.addAll(shipment.items);
+      }
+
+      setState(() {
+        _ordersList = allItems;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      print(
+        "Error fetching/processing orders for date ${DateFormat('yyyy-MM-dd').format(date)}: $e",
+      );
+      setState(() {
+        _errorMessage = "Gagal memuat pesanan: ${e.toString()}";
+        _isLoading = false;
+      });
+    }
   }
+
+  // This function will now just load mock data based on the selected date
 
   void _onDateSelected(DateTime selectedDay, DateTime focusedDay) {
     if (!isSameDay(_selectedDay, selectedDay)) {
@@ -118,7 +167,7 @@ class _HistoriPesananPageState extends State<HistoriPesananPage> {
         _focusedDay = focusedDay;
         _updateDateController(selectedDay);
       });
-      _loadMockOrdersForDate(selectedDay);
+      _fetchOrdersForDate(selectedDay);
     }
   }
 
@@ -260,7 +309,7 @@ class _HistoriPesananPageState extends State<HistoriPesananPage> {
                         left: 8.0,
                         right: 8.0,
                       ),
-                      child: TableCalendar<OrderItem>(
+                      child: TableCalendar<ShipmentItem>(
                         locale: 'id_ID',
                         firstDay: DateTime.utc(2010, 1, 1),
                         lastDay: DateTime.utc(2035, 12, 31),
@@ -321,12 +370,12 @@ class _HistoriPesananPageState extends State<HistoriPesananPage> {
                           ),
                         ),
                         daysOfWeekStyle: DaysOfWeekStyle(
-                          weekdayStyle: GoogleFonts.poppins(
+                          weekdayStyle: TextStyle(
                             fontWeight: FontWeight.w600,
                             color: Colors.black54,
                             fontSize: 13,
                           ),
-                          weekendStyle: GoogleFonts.poppins(
+                          weekendStyle: TextStyle(
                             fontWeight: FontWeight.w600,
                             color: Colors.pinkAccent[200],
                             fontSize: 13,
@@ -339,7 +388,7 @@ class _HistoriPesananPageState extends State<HistoriPesananPage> {
 
                   Text(
                     'Pesananmu',
-                    style: GoogleFonts.poppins(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Colors.black87,
@@ -357,13 +406,31 @@ class _HistoriPesananPageState extends State<HistoriPesananPage> {
   }
 
   Widget _buildOrdersList() {
+    if (_isLoading) {
+      // Changed from _isLoadingOrders
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(20.0),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+    if (_errorMessage.isNotEmpty) {
+      // Changed from _orderErrorMessage
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Text(_errorMessage, style: TextStyle(color: Colors.red)),
+        ),
+      );
+    }
     if (_selectedDay == null) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 30.0),
           child: Text(
             'Pilih tanggal terlebih dahulu',
-            style: GoogleFonts.poppins(color: Colors.grey[600], fontSize: 14),
+            style: TextStyle(color: Colors.grey[600], fontSize: 14),
           ),
         ),
       );
@@ -374,7 +441,7 @@ class _HistoriPesananPageState extends State<HistoriPesananPage> {
           padding: const EdgeInsets.symmetric(vertical: 30.0),
           child: Text(
             'Tidak ada pesanan pada tanggal ini.',
-            style: GoogleFonts.poppins(color: Colors.grey[600], fontSize: 14),
+            style: TextStyle(color: Colors.grey[600], fontSize: 14),
           ),
         ),
       );
@@ -391,7 +458,7 @@ class _HistoriPesananPageState extends State<HistoriPesananPage> {
     );
   }
 
-  Widget _buildOrderListItem(OrderItem order) {
+  Widget _buildOrderListItem(ShipmentItem order) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 6.0),
       elevation: 1.5,
@@ -404,15 +471,15 @@ class _HistoriPesananPageState extends State<HistoriPesananPage> {
         ),
         title: Text(
           order.productName,
-          style: GoogleFonts.poppins(
+          style: TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 15,
             color: Colors.black87,
           ),
         ),
         subtitle: Text(
-          'Dipesan : ${DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(order.orderDate)}',
-          style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[700]),
+          'Dipesan : ${DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(order.shippingDate)}',
+          style: TextStyle(fontSize: 12, color: Colors.grey[700]),
         ),
         trailing: Icon(
           Icons.arrow_forward_ios,
@@ -421,7 +488,12 @@ class _HistoriPesananPageState extends State<HistoriPesananPage> {
         ),
         onTap: () {
           // TODO: Navigate to order details page with order.id
-          print('Tapped on order: ${order.id}');
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => HistoriDetailPage(item: order),
+            ),
+          );
         },
       ),
     );

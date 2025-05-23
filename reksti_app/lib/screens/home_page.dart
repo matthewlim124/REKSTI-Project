@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:reksti_app/screens/historipesanan_page.dart';
 import 'package:reksti_app/screens/scan_page.dart';
 import 'package:reksti_app/screens/profile_page.dart';
+import 'package:reksti_app/services/logic_service.dart';
+import 'package:reksti_app/model/Shipment.dart';
+import 'package:reksti_app/Exception.dart';
+import 'package:reksti_app/services/token_service.dart';
 
 // Placeholder data for products
 class Product {
@@ -20,16 +24,61 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _bottomNavIndex = 0; // To track selected bottom nav item
+  String? _displayedUsername;
+  bool _isLoadingOrders = true;
+  bool _isLoadingUsername = true;
+  final TokenStorageService tokenStorage = TokenStorageService();
+  String _orderErrorMessage = '';
+  List<ShipmentItem> _processedTodayOrders = [];
 
-  // Mock product data
-  final List<Product> _todayOrders = List.generate(
-    1, //note: base on how many order there are
-    (index) => Product(
-      name: 'Get from db',
-      // IMPORTANT: Replace with your actual product image path or use a placeholder
-      imagePath: 'assets/images/drug.png',
-    ),
-  );
+  final _logicService = LogicService();
+
+  @override
+  void initState() {
+    super.initState();
+    _handleLoadOrders(); // Call the method to load and process orders
+  }
+
+  Future<void> _handleLoadOrders() async {
+    String? username = await tokenStorage.getUsername();
+    if (!mounted) return;
+    setState(() {
+      _isLoadingOrders = true;
+      _displayedUsername = username ?? "Default"; // Default if not found
+      _isLoadingUsername = false;
+      _orderErrorMessage = '';
+    });
+
+    try {
+      final List<dynamic> rawShipmentData = await _logicService.getOrder();
+
+      final List<Shipment> shipments =
+          rawShipmentData.map((data) => Shipment.fromJson(data)).toList();
+
+      if (!mounted) return;
+
+      List<ShipmentItem> allItems = [];
+      for (var shipment in shipments) {
+        allItems.addAll(shipment.items);
+      }
+
+      setState(() {
+        _processedTodayOrders = allItems;
+        _isLoadingOrders = false;
+      });
+    } catch (e) {
+      if (!mounted) return; // Check mounted again after await
+      setState(() {
+        _orderErrorMessage = "Gagal memuat pesanan: ${e.toString()}";
+        _isLoadingOrders = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(' Get Order Failed: ${e.toString()}'),
+        ), // Use e.toString()
+      );
+    }
+  }
 
   // Placeholder widget for image assets
   Widget _buildImagePlaceholder({
@@ -169,7 +218,8 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             Text(
-              'get from db', // Replace with dynamic data if needed
+              _displayedUsername ??
+                  "Pengguna", // Replace with dynamic data if needed
               style: TextStyle(fontSize: 16, color: Colors.grey[600]),
             ),
           ],
@@ -295,37 +345,79 @@ class _HomePageState extends State<HomePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Pesananmu Hari ini',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            Text(
+              'Pesananmu',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            if (!_isLoadingOrders && _processedTodayOrders.isNotEmpty)
+              Text(
+                '${_processedTodayOrders.length} Item${_processedTodayOrders.length == 1 ? "" : "s"}',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[700],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+          ],
         ),
         const SizedBox(height: 15),
-        GridView.builder(
-          shrinkWrap:
-              true, // Important for GridView inside SingleChildScrollView
-          physics:
-              const NeverScrollableScrollPhysics(), // Disable GridView's own scrolling
-          itemCount: _todayOrders.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3, // Number of items per row
-            crossAxisSpacing: 12.0, // Horizontal spacing
-            mainAxisSpacing: 12.0, // Vertical spacing
-            childAspectRatio: 0.9, // Adjust aspect ratio (width / height)
+        if (_isLoadingOrders)
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.all(20.0),
+              child: CircularProgressIndicator(),
+            ),
+          )
+        else if (_orderErrorMessage.isNotEmpty)
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Text(
+                _orderErrorMessage,
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+          )
+        else if (_processedTodayOrders.isEmpty)
+          Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Center(
+              child: Text(
+                "Tidak ada pesanan untuk hari ini.",
+                style: TextStyle(),
+              ),
+            ),
+          )
+        else
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: _processedTodayOrders.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              crossAxisSpacing: 12.0,
+              mainAxisSpacing: 12.0,
+              childAspectRatio: 0.85,
+            ),
+            itemBuilder: (context, index) {
+              final item = _processedTodayOrders[index];
+              return _buildProductCard(item);
+            },
           ),
-          itemBuilder: (context, index) {
-            final product = _todayOrders[index];
-            return _buildProductCard(product);
-          },
-        ),
       ],
     );
   }
 
-  Widget _buildProductCard(Product product) {
+  Widget _buildProductCard(ShipmentItem item) {
     return Card(
       elevation: 2.0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
@@ -336,26 +428,33 @@ class _HomePageState extends State<HomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Expanded(
-              // IMPORTANT: Replace with your product image
-              child: Image.asset(
-                product.imagePath,
-                fit: BoxFit.contain,
-                errorBuilder:
-                    (context, error, stacktrace) =>
-                        _buildImagePlaceholder(icon: Icons.medication),
+              child: Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: Image.asset(
+                  item.imagePath,
+                  fit: BoxFit.contain,
+                  errorBuilder:
+                      (context, error, stacktrace) =>
+                          _buildImagePlaceholder(icon: Icons.medication),
+                ),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
-              product.name,
+              item.productName,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
                 color: Colors.black87,
               ),
-              maxLines: 2,
+              maxLines: 1,
               overflow: TextOverflow.ellipsis,
+            ),
+            Text(
+              "Qty: ${item.quantity}",
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 11, color: Colors.grey[600]),
             ),
           ],
         ),
