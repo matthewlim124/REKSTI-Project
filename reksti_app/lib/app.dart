@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart'; // If you're using it
 // Import your initial screen (e.g., login screen or home screen)
 import 'package:reksti_app/screens/register_page.dart'; // Adjust path
-
+//import 'package:reksti_app/screens/profile_page.dart'; // Adjust path
 // Or, if you have a splash screen or home screen as initial:
 // import 'package:your_flutter_project/features/home/screens/home_screen.dart';
 // Import your theme if it's in a separate file
@@ -23,6 +23,7 @@ class MyApp extends StatelessWidget {
       ),
       // Define your initial route or home screen
       home: const RegisterPage(), // Replace with your app's starting screen
+      //home: const ProfilePage(),
       // You might also set up named routes here if you're using them:
       // routes: AppRoutes.routes, // Assuming AppRoutes is defined in core/navigation/
       // initialRoute: RouteNames.splash, // Or your initial route name

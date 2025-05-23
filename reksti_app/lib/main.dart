@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:intl/date_symbol_data_local.dart'; // Import for initializeDateFormatting
 // 1. IMPORT YOUR app.dart FILE
 //    *******************************************************************
 //    *** CRITICAL: Replace 'your_project_name' with the actual     ***
@@ -24,7 +24,7 @@ void main() async {
   //    This is crucial if your 'main' function is 'async' and you perform
   //    operations before runApp().
   WidgetsFlutterBinding.ensureInitialized();
-
+  await initializeDateFormatting('id_ID', null);
   // 3. --- OPTIONAL: PERFORM ESSENTIAL INITIAL SETUP HERE ---
   //    This is where you would initialize services or configurations
   //    that your app needs before the UI is built.

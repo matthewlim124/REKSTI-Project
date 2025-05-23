@@ -2,14 +2,13 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-class AuthService {
-  final String _baseUrl =
-      'http://103.59.160.119:3240/api'; // Define your base URL
+class LogicService {
+  //'http://103.59.160.119:3240/api'; // Define your base URL
 
   // This is your postData function, now as a method of AuthService
   Future<Map<String, dynamic>?> lUser(String username, String password) async {
     // Renamed for clarity
-    final url = Uri.parse('$_baseUrl/login');
+    final url = Uri.parse('http://103.59.160.119:3240/api/');
     final Map<String, String> body = {
       'username': username,
       'password': password,
@@ -47,7 +46,7 @@ class AuthService {
     String password,
     String role,
   ) async {
-    final url = Uri.parse('$_baseUrl/api/register');
+    final url = Uri.parse('http://103.59.160.119:3240/api/register');
     try {
       final response = await http.post(
         url,

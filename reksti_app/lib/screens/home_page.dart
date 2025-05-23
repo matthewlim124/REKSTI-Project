@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
+import 'package:reksti_app/screens/historipesanan_page.dart';
+import 'package:reksti_app/screens/scan_page.dart';
+import 'package:reksti_app/screens/profile_page.dart';
 
 // Placeholder data for products
 class Product {
@@ -50,7 +52,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     return Scaffold(
-      backgroundColor: Colors.grey[100], // Light background color
+      backgroundColor: Color(0xFFFFFFFF), // Light background color
       body: Stack(
         // Stack is the direct child of the Scaffold's body
         children: <Widget>[
@@ -129,10 +131,17 @@ class _HomePageState extends State<HomePage> {
                 color: Colors.grey[700],
                 size: 28,
               ),
+
               // onPressed: () { /* TODO: Notification action */ },
               // OR using an image asset:
               // child: Image.asset('assets/images/icon_bell.png', width: 28, height: 28),
               onPressed: () {},
+            ),
+            const SizedBox(width: 10),
+            CircleAvatar(
+              radius: 20,
+              backgroundColor: Colors.grey[300],
+              child: Icon(Icons.person, color: Colors.grey[700]),
             ),
 
             // User Profile Avatar
@@ -184,8 +193,10 @@ class _HomePageState extends State<HomePage> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20.0),
         gradient: LinearGradient(
-          colors: [Colors.pink[100]!, Colors.purple[100]!],
+          colors: [Color(0xFFF2CBEF), Color(0xFFE8CDFD), Color(0XFFF2CBEF)],
+          stops: [0.0, 0.48, 1],
           begin: Alignment.topLeft,
+
           end: Alignment.bottomRight,
         ),
         boxShadow: [
@@ -212,27 +223,33 @@ class _HomePageState extends State<HomePage> {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Colors.purple[800],
+                        color: Color(0xFF571589),
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Cek hasil pesanan yang sudah Anda pindaiin',
+                      'Cek hasil pesanan yang \nsudah Anda pindaiin',
                       style: TextStyle(fontSize: 13, color: Colors.purple[700]),
                     ),
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () {
-                        // TODO: Navigate to History Page
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const HistoriPesananPage(),
+                          ),
+                        );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
+                        elevation: 8.0,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 25,
                           vertical: 10,
                         ),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.0),
+                          borderRadius: BorderRadius.circular(15.0),
                         ),
                       ),
                       child: Text(
@@ -348,279 +365,86 @@ class _HomePageState extends State<HomePage> {
 
   // --- DYNAMIC CUSTOM BOTTOM NAVIGATION BAR ---
   Widget _buildBottomNavigationBar() {
-    const double barHeight = 80.0;
-    const double fabSize = 50.0; // Size of the circular item
-    const double fabMargin = 10.0; // Margin for the curve calculation
-    // How much the selected item's icon should visually dip into the ravine
-    final double enlargedSelectedCircleSize = fabSize * 1.35;
-    final double selectedItemLift = enlargedSelectedCircleSize * 0.6;
+    const double barHeight = 160; // Adjust to the actual height of your images
+    String currentNavBarImage;
 
-    return SizedBox(
-      height:
-          barHeight, // Total height, allowing space for labels below items in ravine
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          // Custom painted background with dynamic ravine position
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            height: barHeight + 20, // The painted bar itself is this tall
-            child: CustomPaint(
-              size: Size(MediaQuery.of(context).size.width, barHeight),
-              painter: _BottomNavPainter(
-                navColor: Color(0xFFBCA0DC), // Light purple from image
-                fabSize: enlargedSelectedCircleSize,
-                fabMargin: fabMargin,
-                selectedIndex: _bottomNavIndex,
-                itemCount: 3,
-                ravineDepthFactor:
-                    0.85, // How deep the ravine is relative to fabRadius
-                ravineCurveControlFactor: 0.7,
-              ),
+    switch (_bottomNavIndex) {
+      case 0: // Home selected
+        currentNavBarImage = 'assets/images/navbar1.png';
+        break;
+      case 1: // Scan selected
+        currentNavBarImage = 'assets/images/navbar2.png';
+        break;
+      case 2: // Profile selected
+        currentNavBarImage = 'assets/images/navbar3.png';
+        break;
+      default:
+        currentNavBarImage = 'assets/images/navbar1.png'; // Default
+    }
+
+    return Container(
+      height: barHeight,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage(currentNavBarImage),
+          fit: BoxFit.cover, // Or BoxFit.fill, BoxFit.fitWidth
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        crossAxisAlignment:
+            CrossAxisAlignment.stretch, // Make InkWells fill height
+        children: <Widget>[
+          Expanded(
+            child: InkWell(
+              onTap: () {
+                setState(() => _bottomNavIndex = 0);
+              },
+              splashColor: Colors.white.withOpacity(
+                0.1,
+              ), // Optional visual feedback
+              highlightColor: Colors.white.withOpacity(0.05),
+              child:
+                  Container(), // Empty container, tap area is the Expanded widget
             ),
           ),
-          // Navigation items in a Row
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            height: barHeight + 2, // Allow space for labels to be fully visible
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              crossAxisAlignment:
-                  CrossAxisAlignment
-                      .start, // Align items to the top of their space
-              children: [
-                _buildBottomNavItem(
-                  icon: Icons.home_filled,
-                  label: 'Home',
-                  itemIndex: 0,
-                  currentIndex: _bottomNavIndex,
-                  onTap: () => setState(() => _bottomNavIndex = 0),
-                  fabSize: fabSize,
-                  enlargedFabSize: enlargedSelectedCircleSize,
-                  selectedItemLift: selectedItemLift,
-                ),
-                _buildBottomNavItem(
-                  icon: Icons.qr_code_scanner,
-                  label: 'Scan',
-                  itemIndex: 1,
-                  currentIndex: _bottomNavIndex,
-                  onTap: () => setState(() => _bottomNavIndex = 1),
-                  fabSize: fabSize,
-                  enlargedFabSize: enlargedSelectedCircleSize,
-                  selectedItemLift: selectedItemLift,
-                ),
-                _buildBottomNavItem(
-                  icon: Icons.person_outline,
-                  label: 'Profile',
-                  itemIndex: 2,
-                  currentIndex: _bottomNavIndex,
-                  onTap: () => setState(() => _bottomNavIndex = 2),
-                  fabSize: fabSize,
-                  enlargedFabSize: enlargedSelectedCircleSize,
-                  selectedItemLift: selectedItemLift,
-                ),
-              ],
+          Expanded(
+            child: InkWell(
+              onTap: () {
+                //setState(() => _bottomNavIndex = 1);
+                Navigator.push(
+                  // Or Navigator.push if you want 'back' functionality
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ScanPage(),
+                  ), // Navigate to your actual ScanPage
+                );
+              },
+              splashColor: Colors.white.withOpacity(0.1),
+              highlightColor: Colors.white.withOpacity(0.05),
+              child: Container(),
+            ),
+          ),
+          Expanded(
+            child: InkWell(
+              onTap: () {
+                // setState(() => _bottomNavIndex = 2);
+                Navigator.push(
+                  // Or Navigator.push if you want 'back' functionality
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ProfilePage(),
+                  ), // Navigate to your actual ProfilePage
+                );
+              },
+              splashColor: Colors.white.withOpacity(0.1),
+              highlightColor: Colors.white.withOpacity(0.05),
+              child: Container(),
             ),
           ),
         ],
       ),
     );
-  }
-
-  Widget _buildBottomNavItem({
-    required IconData icon,
-    required String label,
-    required int itemIndex,
-    required int currentIndex,
-    required VoidCallback onTap,
-    required double fabSize,
-    required double enlargedFabSize,
-    required double selectedItemLift, // How much the selected item is lifted
-  }) {
-    bool isSelected = itemIndex == currentIndex;
-    Color itemActiveIconColor = Color(0xFF69F0AE);
-    Color itemInactiveColor = Colors.white;
-    Color labelColor = Colors.white;
-
-    double currentDisplayCircleSize = isSelected ? enlargedFabSize : fabSize;
-    double iconSize = isSelected ? fabSize * 0.8 : 50;
-    // If selected, the item (icon + text) is translated upwards.
-    double verticalOffset =
-        isSelected ? -selectedItemLift - 10 : 0; // Negative to LIFT UP
-
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        splashColor: Colors.transparent,
-        highlightColor: Colors.transparent,
-        child: Transform.translate(
-          offset: Offset(0, verticalOffset),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment:
-                MainAxisAlignment.center, // Align to bottom for label placement
-            children: [
-              Container(
-                width: currentDisplayCircleSize + 10,
-                height: currentDisplayCircleSize - 5,
-                decoration:
-                    isSelected
-                        ? BoxDecoration(
-                          color: Color(0xFFBCA0DC),
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 3),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.15),
-                              blurRadius: 6,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        )
-                        : null,
-                child: Icon(
-                  icon,
-                  color: isSelected ? itemActiveIconColor : itemInactiveColor,
-                  size: iconSize,
-                ),
-              ),
-
-              Text(
-                label,
-                style: TextStyle(
-                  color: labelColor,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _BottomNavPainter extends CustomPainter {
-  final Color navColor;
-  final double fabSize;
-  final double fabMargin;
-  final int selectedIndex;
-  final int itemCount;
-  final double ravineDepthFactor;
-  final double ravineCurveControlFactor; // Factor to control steepness
-
-  _BottomNavPainter({
-    required this.navColor,
-    required this.fabSize,
-    required this.fabMargin,
-    required this.selectedIndex,
-    required this.itemCount,
-    this.ravineDepthFactor = 0.85, // MODIFIED: Increased default depth
-    this.ravineCurveControlFactor =
-        0.7, // MODIFIED: Adjusted for steeper curve (0.0 to 1.0)
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint =
-        Paint()
-          ..color = navColor
-          ..style = PaintingStyle.fill;
-
-    final path = Path();
-    final double fabRadius = fabSize / 2;
-    final double cornerRadius = 7.5;
-    final double actualRavineDepth = fabRadius * ravineDepthFactor;
-
-    final double itemWidth = size.width / itemCount;
-    final double centerFabX = (itemWidth * selectedIndex) + (itemWidth / 2);
-
-    // Define the horizontal start and end points of the entire ravine section
-    // These points are where the flat top line of the bar meets the curve of the ravine
-    final double ravineShoulderSpan =
-        fabRadius +
-        fabMargin; // How far the curve 'shoulders' extend from centerFabX
-    final double ravineStartPointX = centerFabX - ravineShoulderSpan;
-    final double ravineEndPointX = centerFabX + ravineShoulderSpan;
-
-    path.moveTo(cornerRadius, 0);
-
-    // Line to the point where the ravine begins
-    path.lineTo(math.max(0, ravineStartPointX), 0);
-
-    // Control points for the first half of the ravine (dipping down)
-    // cp1 is on the top line, cp2 is at the bottom of the ravine
-    double cp1x =
-        ravineStartPointX +
-        (centerFabX - ravineStartPointX) * (1 - ravineCurveControlFactor);
-    double cp1y = 0;
-    double cp2x =
-        centerFabX -
-        (centerFabX - ravineStartPointX) *
-            (ravineCurveControlFactor *
-                0.5); // Pulls towards center for steepness
-    double cp2y = actualRavineDepth;
-
-    path.cubicTo(
-      cp1x.clamp(0, size.width),
-      cp1y,
-      cp2x.clamp(0, size.width),
-      cp2y,
-      centerFabX.clamp(0, size.width),
-      actualRavineDepth,
-    );
-
-    // Control points for the second half of the ravine (coming up)
-    // cp3 is at the bottom of the ravine, cp4 is on the top line
-    double cp3x =
-        centerFabX +
-        (ravineEndPointX - centerFabX) *
-            (ravineCurveControlFactor * 0.5); // Pulls from center for steepness
-    double cp3y = actualRavineDepth;
-    double cp4x =
-        ravineEndPointX -
-        (ravineEndPointX - centerFabX) * (1 - ravineCurveControlFactor);
-    double cp4y = 0;
-
-    path.cubicTo(
-      cp3x.clamp(0, size.width),
-      cp3y,
-      cp4x.clamp(0, size.width),
-      cp4y,
-      math.min(size.width, ravineEndPointX),
-      0,
-    );
-
-    path.lineTo(size.width - cornerRadius, 0);
-    path.arcToPoint(
-      Offset(size.width, cornerRadius),
-      radius: Radius.circular(cornerRadius),
-    );
-    path.lineTo(size.width, size.height);
-    path.lineTo(0, size.height);
-    path.lineTo(0, cornerRadius);
-    path.arcToPoint(
-      Offset(cornerRadius, 0),
-      radius: Radius.circular(cornerRadius),
-    );
-    path.close();
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _BottomNavPainter oldDelegate) {
-    return oldDelegate.navColor != navColor ||
-        oldDelegate.fabSize != fabSize ||
-        oldDelegate.fabMargin != fabMargin ||
-        oldDelegate.selectedIndex != selectedIndex ||
-        oldDelegate.itemCount != itemCount ||
-        oldDelegate.ravineDepthFactor != ravineDepthFactor ||
-        oldDelegate.ravineCurveControlFactor != ravineCurveControlFactor;
   }
 }

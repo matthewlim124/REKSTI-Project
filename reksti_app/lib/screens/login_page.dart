@@ -2,6 +2,8 @@ import 'package:flutter/material.dart'; // Make sure you have google_fonts in pu
 import 'dart:ui'; // For ImageFilter.blur
 import './register_page.dart';
 import './home_page.dart';
+import 'package:reksti_app/services/auth_service.dart';
+import 'package:reksti_app/Exception.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -11,7 +13,107 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  // Assuming AuthService is correctly defined and imported.
+  // If not, you might need to create a placeholder or ensure it's available.
+  final AuthService _authService = AuthService();
+
+  bool _isLoading = false;
+
   bool _isPasswordVisible = false;
+
+  @override
+  void dispose() {
+    // Clean up the controllers when the widget is disposed.
+    _usernameController.dispose();
+    _passwordController.dispose();
+
+    super.dispose();
+  }
+
+  Future<void> _handleLogin() async {
+    if (_isLoading) return; // Prevent multiple submissions
+    if (!mounted) return; // Check if the widget is still in the tree
+
+    // Get values and trim where appropriate
+    final String username = _usernameController.text.trim();
+    final String password =
+        _passwordController.text; // Don't trim password for validation/sending
+
+    // --- Refined Validation ---
+    if (username.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please fill all fields.')));
+      return;
+    }
+
+    // --- End of Refined Validation ---
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    // print('Logging in user:');
+    // print('Username: $username');
+    // print(
+    //   'Password: $password',
+    // ); // Log raw password for debugging (consider removing in prduction)
+
+    try {
+      // Call AuthService with non-trimmed password
+      // Ensure your AuthService.registerUser method signature matches these arguments
+      await _authService.loginUser(
+        username, // Trimmed username
+        password, // Raw password
+      );
+
+      if (!mounted) return; // Check mounted again after await
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Login Successful!'),
+          duration: Duration(seconds: 1), // Show for a bit longer
+        ),
+      );
+      // Navigate to login page, replacing the current route
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomePage()),
+      );
+    } on AuthenticationException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Login Failed: ${e.message}')));
+    } on ServerException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Server Error: ${e.message}')));
+    } on NetworkException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Network Error: ${e.message}')));
+    } catch (e) {
+      if (!mounted) return; // Check mounted again after await
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Login Failed: ${e.toString()}'),
+        ), // Use e.toString()
+      );
+    } finally {
+      if (mounted) {
+        // Check mounted in finally block
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -265,6 +367,7 @@ class _LoginPageState extends State<LoginPage> {
                       SizedBox(
                         width: formElementWidth,
                         child: _buildTextField(
+                          controller: _usernameController,
                           hintText: 'Username',
                           prefixIcon: Icons.person_outline,
                         ),
@@ -295,6 +398,7 @@ class _LoginPageState extends State<LoginPage> {
                       SizedBox(
                         width: formElementWidth,
                         child: _buildTextField(
+                          controller: _passwordController,
                           hintText: 'Password',
                           prefixIcon: Icons.key_outlined,
                           obscureText: !_isPasswordVisible,
@@ -333,7 +437,6 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 20.0),
 
                       SizedBox(
                         width: formElementWidth,
@@ -347,14 +450,8 @@ class _LoginPageState extends State<LoginPage> {
                             shadowColor: Colors.transparent,
                             elevation: 0,
                           ),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const HomePage(),
-                              ),
-                            );
-                          },
+                          onPressed: _isLoading ? null : _handleLogin,
+
                           child: Ink(
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
@@ -362,7 +459,7 @@ class _LoginPageState extends State<LoginPage> {
                                 begin: Alignment.centerLeft,
                                 end: Alignment.centerRight,
                               ),
-                              borderRadius: BorderRadius.circular(10.0),
+                              borderRadius: BorderRadius.circular(15.0),
                             ),
                             child: Container(
                               alignment: Alignment.center,
@@ -396,10 +493,12 @@ class _LoginPageState extends State<LoginPage> {
   Widget _buildTextField({
     required String hintText,
     required IconData prefixIcon,
+    TextEditingController? controller,
     bool obscureText = false,
     Widget? suffixIcon,
   }) {
     return TextField(
+      controller: controller,
       obscureText: obscureText,
       style: const TextStyle(color: Color(0xFF5C5A5A), fontSize: 14),
       decoration: InputDecoration(

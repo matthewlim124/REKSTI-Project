@@ -2,6 +2,7 @@ import 'package:flutter/material.dart'; // Make sure you have google_fonts in pu
 import 'dart:ui'; // For ImageFilter.blur
 import './login_page.dart';
 import 'package:reksti_app/services/auth_service.dart';
+import 'package:reksti_app/Exception.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -82,7 +83,7 @@ class _RegisterPageState extends State<RegisterPage> {
     print(
       'Password: $password',
     ); // Log raw password for debugging (consider removing in production)
-    const String role = 'penerima'; // Hardcoded role
+    const String role = 'recipient'; // Hardcoded role
 
     try {
       // Call AuthService with non-trimmed password
@@ -102,11 +103,21 @@ class _RegisterPageState extends State<RegisterPage> {
           duration: Duration(seconds: 3), // Show for a bit longer
         ),
       );
-      // Navigate to login page, replacing the current route
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const LoginPage()),
       );
+    } on ServerException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Server Error: ${e.message}')));
+    } on NetworkException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Network Error: ${e.message}')));
     } catch (e) {
       if (!mounted) return; // Check mounted again after await
       ScaffoldMessenger.of(context).showSnackBar(
@@ -481,7 +492,6 @@ class _RegisterPageState extends State<RegisterPage> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 20.0),
 
                       SizedBox(
                         width: formElementWidth,
@@ -503,7 +513,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 begin: Alignment.centerLeft,
                                 end: Alignment.centerRight,
                               ),
-                              borderRadius: BorderRadius.circular(10.0),
+                              borderRadius: BorderRadius.circular(15.0),
                             ),
                             child: Container(
                               alignment: Alignment.center,
