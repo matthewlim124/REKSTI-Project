@@ -77,7 +77,7 @@ class _ScanPageState extends State<ScanPage> {
                               'Panduan Melakukan\nPindahan Tags NFC',
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                fontSize: 26,
+                                fontSize: 28,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black,
                                 height: 1.3,

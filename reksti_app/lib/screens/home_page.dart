@@ -44,7 +44,7 @@ class _HomePageState extends State<HomePage> {
     if (!mounted) return;
     setState(() {
       _isLoadingOrders = true;
-      _displayedUsername = username ?? "Default"; // Default if not found
+      _displayedUsername = username; // Default if not found
       _isLoadingUsername = false;
       _orderErrorMessage = '';
     });
