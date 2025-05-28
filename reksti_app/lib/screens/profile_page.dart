@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart'; // Import Provider
+
 import 'dart:math' as math; // For PI
 import 'dart:io';
-import 'package:image_picker/image_picker.dart';
-import 'package:reksti_app/screens/login_page.dart';
+import 'package:reksti_app/user_provider.dart';
 
 import 'package:reksti_app/services/token_service.dart';
-import 'package:reksti_app/services/logic_service.dart';
-import 'package:reksti_app/model/Shipment.dart';
+
+import 'package:reksti_app/screens/login_page.dart';
 import 'package:reksti_app/screens/home_page.dart';
 import 'package:reksti_app/screens/scan_page.dart';
 import 'package:reksti_app/screens/syarat_page.dart';
@@ -24,78 +25,22 @@ class _ProfilePageState extends State<ProfilePage> {
   // Set initial index to 2 for Profile page
   int _bottomNavIndex = 2;
   // MODIFIED: State variables for profile data
-  String? _profileRecipientName;
-  String? _profileRecipientAddress;
-  bool _isLoadingProfile = true;
-  String _profileError = '';
-  File? _profileImageFile;
-  final _logicService = LogicService();
+
   final TokenStorageService tokenStorage = TokenStorageService();
 
   @override
   void initState() {
     super.initState();
-    _loadProfileData(); // Call the method to load and process orders
   }
 
-  Future<void> _loadProfileData() async {
-    if (!mounted) return;
-    setState(() {
-      _isLoadingProfile = true;
-      _profileError = '';
-    });
-
-    try {
-      final List<dynamic> rawShipmentData = await _logicService.getOrder();
-
-      if (!mounted) return;
-
-      if (rawShipmentData.isNotEmpty) {
-        // Assuming the first record contains the relevant profile info
-        final Shipment profileShipmentData = Shipment.fromJson(
-          rawShipmentData.first as Map<String, dynamic>,
-        );
-        setState(() {
-          _profileRecipientName = profileShipmentData.recipientName;
-          _profileRecipientAddress = profileShipmentData.recipientAddress;
-          _isLoadingProfile = false;
-        });
-      } else {
-        throw Exception("No profile data found.");
-      }
-    } catch (e) {
-      if (!mounted) return;
-      print("Error loading profile data: $e");
-      setState(() {
-        _profileError = "Error loading profile data: ${e.toString()}";
-        _isLoadingProfile = false;
-      });
-    }
-  }
-
-  // MODIFIED: Method to pick an image
-  Future<void> _pickProfileImage() async {
-    final ImagePicker picker = ImagePicker();
-    // Pick an image from the gallery
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    // You can also use ImageSource.camera to take a new picture
-
-    if (image != null) {
-      if (!mounted) return;
-      setState(() {
-        _profileImageFile = File(image.path);
-      });
-      // TODO: Here you would typically upload the _profileImageFile to your server
-      // and update the user's profile image URL.
-      // For this example, we're just updating it locally.
-      print("Profile image selected: ${image.path}");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Gambar profil diperbarui (lokal).")),
-      );
-    } else {
-      // User canceled the picker
-      print("No image selected.");
-    }
+  Future<void> _triggerPickProfileImage() async {
+    // Call the provider's method to handle image picking and state update
+    await Provider.of<UserProvider>(
+      context,
+      listen: false,
+    ).pickAndSaveProfileImage();
+    // Optionally show a SnackBar from here if pickAndSaveProfileImage doesn't,
+    // or if it returns a status.
   }
 
   Widget _buildImagePlaceholder({
@@ -135,6 +80,8 @@ class _ProfilePageState extends State<ProfilePage> {
     final screenSize = MediaQuery.of(context).size;
     final topSafeAreaPadding = MediaQuery.of(context).padding.top;
 
+    final userProvider = Provider.of<UserProvider>(context);
+
     return
     // 3. Main Scaffold (Top Layer)
     Container(
@@ -159,8 +106,16 @@ class _ProfilePageState extends State<ProfilePage> {
         body: SingleChildScrollView(
           child: Column(
             children: [
-              _buildProfileHeader(screenSize, topSafeAreaPadding),
-              _buildProfileMenuList(),
+              _buildProfileHeader(
+                screenSize,
+                topSafeAreaPadding,
+                userProvider.isLoadingProfile,
+                userProvider.profileRecipientName,
+                userProvider.profileRecipientAddress,
+                userProvider.profileImageFile,
+                userProvider.profileError,
+              ),
+              _buildProfileMenuList(userProvider),
             ],
           ),
         ),
@@ -169,16 +124,29 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildProfileHeader(Size screenSize, double topSafeArea) {
-    String displayName = _profileRecipientName ?? "";
-    String displayAddress = (_profileRecipientAddress ?? "");
+  Widget _buildProfileHeader(
+    Size screenSize,
+    double topSafeArea,
+    bool isLoading, // From provider
+    String? recipientName, // From provider
+    String? recipientAddress, // From provider
+    File? profileImageFile, // From provider
+    String profileError, // From provider
+  ) {
+    String displayName =
+        isLoading && recipientName == null
+            ? ""
+            : (recipientName ?? "Nama tidak tersedia");
+    String displayAddress =
+        isLoading && recipientAddress == null
+            ? ""
+            : (recipientAddress ?? "Alamat tidak tersedia");
     String avatarLetter =
-        _isLoadingProfile ||
-                _profileRecipientName == null ||
-                _profileRecipientName!.isEmpty
+        isLoading || recipientName == null || recipientName.isEmpty
             ? "X"
-            : _profileRecipientName![0].toUpperCase();
-    if (_profileError.isNotEmpty && !_isLoadingProfile) {
+            : recipientName[0].toUpperCase();
+
+    if (profileError.isNotEmpty && !isLoading) {
       displayName = "Error";
       displayAddress = "Gagal memuat data";
     }
@@ -219,11 +187,11 @@ class _ProfilePageState extends State<ProfilePage> {
                 radius: 50,
                 backgroundColor: Colors.deepPurple[400], // Color from image
                 backgroundImage:
-                    _profileImageFile != null
-                        ? FileImage(_profileImageFile!)
+                    profileImageFile != null && profileImageFile.existsSync()
+                        ? FileImage(profileImageFile)
                         : null,
                 child:
-                    _profileImageFile == null
+                    profileImageFile == null
                         ?
                         // Initial or from user data
                         Text(
@@ -237,15 +205,20 @@ class _ProfilePageState extends State<ProfilePage> {
                         : null,
               ),
               const SizedBox(height: 12),
-              Text(
-                displayName,
-                // Replace with dynamic user name
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+              if (isLoading && recipientName == null)
+                CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.black87),
+                )
+              else
+                Text(
+                  displayName,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
                 ),
-              ),
               const SizedBox(height: 6),
               Row(
                 mainAxisSize: MainAxisSize.min,
@@ -273,7 +246,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildProfileMenuList() {
+  Widget _buildProfileMenuList(UserProvider userProvider) {
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -356,7 +329,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
                               // Perform actual logout actions
                               await tokenStorage.deleteAllTokens();
-                              print("Tokens deleted, navigating to login.");
+                              await userProvider.clearProfileDataOnLogout();
 
                               // Navigate to Login Page and remove all previous routes
                               if (mounted) {
@@ -407,8 +380,8 @@ class _ProfilePageState extends State<ProfilePage> {
                 color: Colors.deepPurple[400],
                 size: 22,
               ),
-              onPressed: () {
-                _pickProfileImage();
+              onPressed: () async {
+                await _triggerPickProfileImage();
               },
             ),
           ),

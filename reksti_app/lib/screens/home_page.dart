@@ -4,7 +4,7 @@ import 'package:reksti_app/screens/scan_page.dart';
 import 'package:reksti_app/screens/profile_page.dart';
 import 'package:reksti_app/services/logic_service.dart';
 import 'package:reksti_app/model/Shipment.dart';
-import 'package:reksti_app/Exception.dart';
+import 'package:reksti_app/user_provider.dart';
 import 'package:reksti_app/services/token_service.dart';
 
 // Placeholder data for products

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart'; // Import for initializeDateFormatting
-
+import 'package:provider/provider.dart';
 // 1. IMPORT YOUR app.dart FILE
 //    *******************************************************************
 //    *** CRITICAL: Replace 'your_project_name' with the actual     ***
 //    *** name of your project (the 'name:' field in pubspec.yaml). ***
 //    *******************************************************************
 import 'package:reksti_app/app.dart'; // Ensure this path is correct
-
+import 'package:reksti_app/user_provider.dart';
 // --- OPTIONAL: Import for initial setup (examples) ---
 // If you plan to use Firebase:
 // import 'package:firebase_core/firebase_core.dart';
@@ -60,5 +60,14 @@ void main() async {
   // 4. RUN YOUR APPLICATION
   //    'MyApp' should be the class defined in your 'app.dart' file
   //    that returns your MaterialApp.
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      // Use MultiProvider if you have more than one provider
+      providers: [
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+        // Add other providers here if needed
+      ],
+      child: const MyApp(), // Your root application widget
+    ),
+  );
 }

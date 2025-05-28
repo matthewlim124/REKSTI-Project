@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'REKSTI APP', // Replace with your app title
+      title: 'SIMILIKITI', // Replace with your app title
       theme: ThemeData(
         // Or use your custom theme from app_theme.dart
         primarySwatch: Colors.purple, // Example
