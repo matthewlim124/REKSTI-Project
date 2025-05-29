@@ -77,6 +77,67 @@ class _HistoriDetailPageState extends State<HistoriDetailPage> {
     final DateFormat dateFormat = DateFormat('EEEE, d MMM yyyy', 'id_ID');
     final DateFormat shortDateFormat = DateFormat('d MMM', 'id_ID');
 
+    String statusText;
+    switch (widget.item.status) {
+      case 'shipped':
+        statusText = "Dalam Perjalanan";
+        break;
+
+      case 'delivered':
+        statusText = "Selesai";
+        break;
+      default:
+        statusText = "Sedang Disiapkan";
+    }
+
+    TextStyle statusTextStyle(String statusText) {
+      switch (statusText) {
+        case 'shipped':
+          return TextStyle(
+            fontSize: 13,
+            color: Colors.grey,
+            fontWeight: FontWeight.w500,
+          );
+
+        case 'delivered':
+          return TextStyle(
+            fontSize: 13,
+            color: Colors.green[700],
+            fontWeight: FontWeight.w500,
+          );
+        default:
+          return TextStyle(
+            fontSize: 13,
+            color: Colors.red[700],
+            fontWeight: FontWeight.w500,
+          );
+      }
+    }
+
+    Icon statusTextIcon(String statusText) {
+      switch (statusText) {
+        case 'shipped':
+          return Icon(
+            Icons.local_shipping_outlined,
+            color: Colors.grey,
+            size: 20,
+          );
+
+        case 'delivered':
+          return Icon(
+            Icons.inventory_2_outlined,
+            color: Colors.green[700],
+            size: 20,
+          );
+        default:
+          return Icon(
+            Icons.timelapse_outlined,
+            color: Colors.red[700],
+            size: 20,
+          );
+      }
+    }
+
     return Stack(
       children: [
         Container(color: const Color(0xFFFDF6F9)), // Light pinkish background
@@ -101,10 +162,7 @@ class _HistoriDetailPageState extends State<HistoriDetailPage> {
             backgroundColor: Colors.transparent,
             elevation: 0,
             leading: IconButton(
-              icon: Icon(
-                Icons.arrow_back_ios_new,
-                color: Colors.deepPurple[400],
-              ),
+              icon: Icon(Icons.arrow_back_ios_new, color: Colors.black),
               onPressed: () => Navigator.of(context).pop(),
             ),
             title: Text(
@@ -193,7 +251,10 @@ class _HistoriDetailPageState extends State<HistoriDetailPage> {
                   ),
                   child: Column(
                     children: [
-                      _buildInfoRow('No Pesanan', '0001234567'),
+                      _buildInfoRow(
+                        'No Pesanan',
+                        widget.item.productId.toString(),
+                      ),
                       _buildInfoRow(
                         'Tanggal Pemesanan',
                         dateFormat.format(widget.item.shippingDate),
@@ -203,7 +264,7 @@ class _HistoriDetailPageState extends State<HistoriDetailPage> {
                         dateFormat.format(_estimatedArrivalDate),
                       ),
                       _buildInfoRow(
-                        'Alamat Perusahaan',
+                        'Alamat Penerima',
                         widget.item.recipientAddress,
                       ),
                       _buildInfoRow(
@@ -235,20 +296,12 @@ class _HistoriDetailPageState extends State<HistoriDetailPage> {
                   ),
                   child: Row(
                     children: [
-                      Icon(
-                        Icons.local_shipping_outlined,
-                        color: Colors.green[600],
-                        size: 20,
-                      ),
+                      statusTextIcon(statusText),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          "Dalam Perjalanan",
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.green[700],
-                            fontWeight: FontWeight.w500,
-                          ),
+                          statusText,
+                          style: statusTextStyle(statusText),
                         ),
                       ),
                     ],

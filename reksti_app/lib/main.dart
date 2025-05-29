@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart'; // Import for initializeDateFormatting
 import 'package:provider/provider.dart';
+import 'package:reksti_app/services/token_service.dart'; // Your TokenStorageService;
+import 'package:shared_preferences/shared_preferences.dart'; // For storing last route
+import 'package:jwt_decoder/jwt_decoder.dart'; // For checking token expiry
 // 1. IMPORT YOUR app.dart FILE
 //    *******************************************************************
 //    *** CRITICAL: Replace 'your_project_name' with the actual     ***
@@ -8,6 +11,7 @@ import 'package:provider/provider.dart';
 //    *******************************************************************
 import 'package:reksti_app/app.dart'; // Ensure this path is correct
 import 'package:reksti_app/user_provider.dart';
+
 // --- OPTIONAL: Import for initial setup (examples) ---
 // If you plan to use Firebase:
 // import 'package:firebase_core/firebase_core.dart';
@@ -17,57 +21,66 @@ import 'package:reksti_app/user_provider.dart';
 // import 'package:your_project_name/core/di/injection_container.dart' as di;
 
 // The 'main' function is the entry point of your Flutter application.
-void main() async {
-  // 'async' is needed if you have 'await' for setup tasks.
-  // If no async setup, you can remove 'async' and the line below.
+const String lastActiveRouteKey = 'last_active_route';
 
-  // 2. ENSURE FLUTTER BINDINGS ARE INITIALIZED
-  //    This is crucial if your 'main' function is 'async' and you perform
-  //    operations before runApp().
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('id_ID', null);
-  // 3. --- OPTIONAL: PERFORM ESSENTIAL INITIAL SETUP HERE ---
-  //    This is where you would initialize services or configurations
-  //    that your app needs before the UI is built.
 
-  // Example: Firebase Initialization (uncomment if you use Firebase)
-  /*
-  if (Firebase.apps.isEmpty) { // Check to prevent re-initialization
-    await Firebase.initializeApp(
-      // If you used FlutterFire CLI, 'firebase_options.dart' will be generated.
-      // options: DefaultFirebaseOptions.currentPlatform,
-    );
-    print('Firebase initialized');
-  } else {
-    print('Firebase already initialized');
+  final prefs = await SharedPreferences.getInstance();
+  final TokenStorageService tokenStorage =
+      TokenStorageService(); // Your service to get token/username
+
+  String determinedInitialRoute = '/login'; // Default to login
+  String? sessionUsername; // To store username if session is valid
+
+  try {
+    String? token = await tokenStorage.getAccessToken();
+    String? username = await tokenStorage.getUsername();
+
+    if (token != null &&
+        username != null &&
+        username.isNotEmpty &&
+        !JwtDecoder.isExpired(token)) {
+      // User has a valid token and username, session is active
+      sessionUsername = username;
+      // Restore last route or default to home
+      determinedInitialRoute = prefs.getString(lastActiveRouteKey) ?? '/home';
+      print(
+        "User session valid. Username: $sessionUsername. Initial route: $determinedInitialRoute",
+      );
+    } else {
+      // No valid token or username, or token expired
+      print("No valid session found or token expired. Clearing session data.");
+      await tokenStorage.deleteAllTokens(); // Clear token and stored username
+      await prefs.remove(lastActiveRouteKey); // Clear last route
+      // Also clear any user-specific data from UserProvider's SharedPreferences (like image path)
+      // This is tricky here as UserProvider instance is not yet available.
+      // The UserProvider's initializeSession will handle loading based on current username.
+      // If username is null after deleteAllTokens, UserProvider will load no specific data.
+    }
+  } catch (e) {
+    print("Error during session check: $e. Defaulting to login.");
+    // Ensure cleanup in case of error during token check
+    await tokenStorage.deleteAllTokens();
+    await prefs.remove(lastActiveRouteKey);
+    determinedInitialRoute = '/login';
+    sessionUsername = null;
   }
-  */
 
-  // Example: Dependency Injection Setup (uncomment if you use a service locator)
-  /*
-  await di.init(); // Initialize your dependency injector (e.g., GetIt)
-  print('Dependency Injection initialized');
-  */
+  final userProvider = UserProvider();
 
-  // Example: Initialize other global services
-  /*
-  await MyAnalyticsService.initialize();
-  await MyCrashReportingService.initialize();
-  */
-
-  // --- End of Optional Initial Setup ---
-
-  // 4. RUN YOUR APPLICATION
-  //    'MyApp' should be the class defined in your 'app.dart' file
-  //    that returns your MaterialApp.
   runApp(
     MultiProvider(
       // Use MultiProvider if you have more than one provider
       providers: [
-        ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider.value(value: userProvider),
         // Add other providers here if needed
       ],
-      child: const MyApp(), // Your root application widget
+      child: MyApp(
+        initialRoute: determinedInitialRoute,
+        sessionUsername: sessionUsername,
+      ), // Your root application widget
     ),
   );
 }

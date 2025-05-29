@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
+import 'package:provider/provider.dart';
 import 'package:reksti_app/screens/historipesanan_page.dart';
+import 'package:reksti_app/screens/historidetail_page.dart';
 import 'package:reksti_app/screens/scan_page.dart';
 import 'package:reksti_app/screens/profile_page.dart';
 import 'package:reksti_app/services/logic_service.dart';
@@ -100,6 +103,9 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
+
+    final userProvider = Provider.of<UserProvider>(context);
+
     return Scaffold(
       backgroundColor: Color(0xFFFFFFFF), // Light background color
       body: Stack(
@@ -138,7 +144,11 @@ class _HomePageState extends State<HomePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Assuming these methods are defined in your State class
-                    _buildTopHeader(),
+                    _buildTopHeader(
+                      userProvider.isLoadingProfile,
+                      userProvider.profileRecipientName,
+                      userProvider.profileImageFile,
+                    ),
                     const SizedBox(height: 25),
                     _buildWelcomeSection(),
                     const SizedBox(height: 25),
@@ -160,7 +170,16 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildTopHeader() {
+  Widget _buildTopHeader(
+    bool isLoading, // From provider
+    String? recipientName, // From provider
+    File? profileImageFile,
+  ) {
+    String avatarLetter =
+        isLoading || recipientName == null || recipientName.isEmpty
+            ? "X"
+            : recipientName[0].toUpperCase();
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -189,8 +208,24 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(width: 10),
             CircleAvatar(
               radius: 20,
-              backgroundColor: Colors.grey[300],
-              child: Icon(Icons.person, color: Colors.grey[700]),
+              backgroundColor: Colors.deepPurple[400], // Color from image
+              backgroundImage:
+                  profileImageFile != null && profileImageFile.existsSync()
+                      ? FileImage(profileImageFile)
+                      : null,
+              child:
+                  profileImageFile == null
+                      ?
+                      // Initial or from user data
+                      Text(
+                        avatarLetter,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      )
+                      : null,
             ),
 
             // User Profile Avatar
@@ -418,45 +453,59 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildProductCard(ShipmentItem item) {
-    return Card(
-      elevation: 2.0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(4.0),
-                child: Image.asset(
-                  item.imagePath,
-                  fit: BoxFit.contain,
-                  errorBuilder:
-                      (context, error, stacktrace) =>
-                          _buildImagePlaceholder(icon: Icons.medication),
+    return InkWell(
+      onTap: () {
+        // MODIFIED: Navigate to HistoriDetailPage, passing the item
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HistoriDetailPage(item: item),
+          ),
+        );
+        print("Tapped product: ${item.productName}");
+      },
+      child: Card(
+        elevation: 2.0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: Image.asset(
+                    item.imagePath,
+                    fit: BoxFit.contain,
+                    errorBuilder:
+                        (context, error, stacktrace) =>
+                            _buildImagePlaceholder(icon: Icons.medication),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              item.productName,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
+              const SizedBox(height: 6),
+              Text(
+                item.productName,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black87,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            Text(
-              "Qty: ${item.quantity}",
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 11, color: Colors.grey[600]),
-            ),
-          ],
+              Text(
+                "Qty: ${item.quantity}",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -464,17 +513,20 @@ class _HomePageState extends State<HomePage> {
 
   // --- DYNAMIC CUSTOM BOTTOM NAVIGATION BAR ---
   Widget _buildBottomNavigationBar() {
-    const double barHeight = 160; // Adjust to the actual height of your images
+    const double barHeight = 150; // Adjust to the actual height of your images
     String currentNavBarImage;
 
     switch (_bottomNavIndex) {
       case 0: // Home selected
+
         currentNavBarImage = 'assets/images/navbar1.png';
         break;
       case 1: // Scan selected
+
         currentNavBarImage = 'assets/images/navbar2.png';
         break;
       case 2: // Profile selected
+
         currentNavBarImage = 'assets/images/navbar3.png';
         break;
       default:

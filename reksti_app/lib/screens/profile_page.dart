@@ -13,6 +13,7 @@ import 'package:reksti_app/screens/home_page.dart';
 import 'package:reksti_app/screens/scan_page.dart';
 import 'package:reksti_app/screens/syarat_page.dart';
 import 'package:reksti_app/screens/privacy_page.dart';
+import 'package:reksti_app/screens/notification_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -264,7 +265,13 @@ class _ProfilePageState extends State<ProfilePage> {
                 text: 'Notifikasi',
                 onTap: () {
                   // TODO: Navigate to Notifikasi page
-                  print("Notifikasi tapped");
+                  Navigator.push(
+                    // Or Navigator.push if you want 'back' functionality
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const NotificationPage(),
+                    ), // Navigate to your actual HomePage
+                  );
                 },
               ),
               _buildProfileMenuItem(
@@ -309,7 +316,9 @@ class _ProfilePageState extends State<ProfilePage> {
                     builder: (BuildContext dialogContext) {
                       return AlertDialog(
                         title: Text("Konfirmasi Keluar"),
-                        content: Text("Apakah Anda yakin ingin keluar?"),
+                        content: Text(
+                          "Apakah Anda yakin ingin log out dari aplikasi ?",
+                        ),
                         actions: <Widget>[
                           TextButton(
                             child: Text("Batal"),
@@ -328,10 +337,11 @@ class _ProfilePageState extends State<ProfilePage> {
                               ).pop(); // Dismiss dialog first
 
                               // Perform actual logout actions
-                              await tokenStorage.deleteAllTokens();
+
                               await userProvider.clearProfileDataOnLogout();
 
                               // Navigate to Login Page and remove all previous routes
+
                               if (mounted) {
                                 // Check if _ProfilePageState is still mounted
                                 Navigator.of(context).pushAndRemoveUntil(
@@ -519,15 +529,30 @@ class _ProfilePageState extends State<ProfilePage> {
 
     switch (_bottomNavIndex) {
       case 0: // Home selected
+        print(
+          "Insatance of user  ${identityHashCode(Provider.of<UserProvider>(context))})",
+        );
         currentNavBarImage = 'assets/images/navbar1.png';
         break;
       case 1: // Scan selected
+        print(
+          "Insatance of user  ${identityHashCode(Provider.of<UserProvider>(context))})",
+        );
+
         currentNavBarImage = 'assets/images/navbar2.png';
         break;
       case 2: // Profile selected
+        print(
+          "Insatance of user  ${identityHashCode(Provider.of<UserProvider>(context))})",
+        );
+
         currentNavBarImage = 'assets/images/navbar3.png';
         break;
       default:
+        print(
+          "Insatance of user  ${identityHashCode(Provider.of<UserProvider>(context))})",
+        );
+
         currentNavBarImage = 'assets/images/navbar3.png'; // Default
     }
 

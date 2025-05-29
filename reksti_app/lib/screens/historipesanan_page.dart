@@ -481,11 +481,7 @@ class _HistoriPesananPageState extends State<HistoriPesananPage> {
           'Dipesan : ${DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(order.shippingDate)}',
           style: TextStyle(fontSize: 12, color: Colors.grey[700]),
         ),
-        trailing: Icon(
-          Icons.arrow_forward_ios,
-          size: 16,
-          color: Color(0xFF7B61FF),
-        ),
+        trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Colors.black),
         onTap: () {
           // TODO: Navigate to order details page with order.id
           Navigator.push(

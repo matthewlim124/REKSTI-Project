@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
+import 'package:reksti_app/user_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:reksti_app/screens/home_page.dart';
 import 'package:reksti_app/screens/profile_page.dart';
 
@@ -161,12 +162,15 @@ class _ScanPageState extends State<ScanPage> {
 
     switch (_bottomNavIndex) {
       case 0: // Home selected
+
         currentNavBarImage = 'assets/images/navbar1.png';
         break;
       case 1: // Scan selected
+
         currentNavBarImage = 'assets/images/navbar2.png';
         break;
       case 2: // Profile selected
+
         currentNavBarImage = 'assets/images/navbar3.png';
         break;
       default:

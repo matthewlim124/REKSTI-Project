@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart'; // Make sure you have google_fonts in pubspec.yaml
+import 'package:provider/provider.dart';
+import 'package:reksti_app/user_provider.dart';
 import 'dart:ui'; // For ImageFilter.blur
 import './register_page.dart';
 import './home_page.dart';
@@ -62,9 +64,12 @@ class _LoginPageState extends State<LoginPage> {
     //   'Password: $password',
     // ); // Log raw password for debugging (consider removing in prduction)
 
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
     try {
       // Call AuthService with non-trimmed password
       // Ensure your AuthService.registerUser method signature matches these arguments
+
+      userProvider.clearProfileDataOnLogout();
       await _authService.loginUser(
         username, // Trimmed username
         password, // Raw password
@@ -78,7 +83,9 @@ class _LoginPageState extends State<LoginPage> {
           duration: Duration(seconds: 1), // Show for a bit longer
         ),
       );
+
       // Navigate to login page, replacing the current route
+      userProvider.loadUserData();
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const HomePage()),
