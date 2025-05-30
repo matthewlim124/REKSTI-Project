@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:provider/provider.dart';
 import 'package:reksti_app/screens/historipesanan_page.dart';
 import 'package:reksti_app/screens/historidetail_page.dart';
+import 'package:reksti_app/screens/notification_page.dart';
 import 'package:reksti_app/screens/scan_page.dart';
 import 'package:reksti_app/screens/profile_page.dart';
 import 'package:reksti_app/services/logic_service.dart';
@@ -203,7 +204,12 @@ class _HomePageState extends State<HomePage> {
               // onPressed: () { /* TODO: Notification action */ },
               // OR using an image asset:
               // child: Image.asset('assets/images/icon_bell.png', width: 28, height: 28),
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => NotificationPage()),
+                );
+              },
             ),
             const SizedBox(width: 10),
             CircleAvatar(
