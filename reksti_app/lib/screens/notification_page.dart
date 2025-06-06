@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Required for SystemUiOverlayStyle
+import 'package:flutter/services.dart';
 import 'package:reksti_app/model/Notification.dart';
 import 'package:reksti_app/services/logic_service.dart';
-import 'package:intl/intl.dart'; // For date formatting
-import 'dart:convert'; // For json.decode
+import 'package:intl/intl.dart';
+import 'dart:convert';
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});
@@ -13,7 +13,27 @@ class NotificationPage extends StatefulWidget {
 }
 
 class _NotificationPageState extends State<NotificationPage> {
-  List<NotificationItem> _notifications = [];
+  final List<NotificationItem> _notifications = [
+    NotificationItem(
+      id: 1,
+      shipmentCode: "SHIP-63A0F3D9",
+      message:
+          "Pesanan Anda SHIP-63A0F3D9 telah berhasil dikonfirmasi dan sedang disiapkan.",
+      isRead: false,
+      createdAt: DateTime.now().subtract(const Duration(minutes: 5)),
+      appName: "SIMILIKITI",
+      icon: Icons.check_circle_outline_rounded,
+    ),
+    NotificationItem(
+      id: 2,
+      shipmentCode: "SHIP-640A0F4D9",
+      message: "Pesanan Anda SHIP-640A0F4D9 sedang dalam perjalanan.",
+      isRead: false,
+      createdAt: DateTime.now().subtract(const Duration(hours: 2)),
+      appName: "SIMILIKITI",
+      icon: Icons.check_circle_outline_rounded,
+    ),
+  ];
   bool _isLoading = true;
   String _errorMessage = '';
   final LogicService logicService = LogicService();
@@ -21,7 +41,7 @@ class _NotificationPageState extends State<NotificationPage> {
   @override
   void initState() {
     super.initState();
-    _handleLoadNotifications(); // Call the method to load and process orders
+    _handleLoadNotifications();
   }
 
   Future<void> _handleLoadNotifications() async {
@@ -35,20 +55,9 @@ class _NotificationPageState extends State<NotificationPage> {
       final List<dynamic> rawNotification =
           await logicService.getNotification();
       if (!mounted) return;
-
-      setState(() {
-        _notifications =
-            rawNotification
-                .map(
-                  (data) =>
-                      NotificationItem.fromJson(data as Map<String, dynamic>),
-                )
-                .toList();
-        _isLoading = false;
-      });
     } catch (e) {
       if (!mounted) return;
-      print("Error fetching notifications: $e");
+
       setState(() {
         _errorMessage = "Gagal memuat notifikasi: ${e.toString()}";
         _isLoading = false;
@@ -72,10 +81,7 @@ class _NotificationPageState extends State<NotificationPage> {
       } else if (dateToFormat == yesterday) {
         return 'Kemarin, ${DateFormat('HH:mm').format(dateTime)}';
       } else if (now.difference(dateToFormat).inDays < 7) {
-        return DateFormat(
-          'EEEE, HH:mm',
-          'id_ID',
-        ).format(dateTime); // EEEE for full day name
+        return DateFormat('EEEE, HH:mm', 'id_ID').format(dateTime);
       } else {
         return DateFormat('d MMM yyyy, HH:mm', 'id_ID').format(dateTime);
       }
@@ -86,11 +92,9 @@ class _NotificationPageState extends State<NotificationPage> {
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
-    final Color pageBackgroundColor = Color(
-      0xFFFAF4F5,
-    ); // Very light pinkish background
+    final Color pageBackgroundColor = Color(0xFFFAF4F5);
 
-    final Color iconColor = Color(0xFFAD8BF2); // Purple icon color from image
+    final Color iconColor = Color(0xFFAD8BF2);
 
     return Stack(
       children: [
@@ -99,9 +103,9 @@ class _NotificationPageState extends State<NotificationPage> {
           top: 0,
           left: 0,
           child: Opacity(
-            opacity: 0.4, // More subtle for this page
+            opacity: 0.4,
             child: Image.asset(
-              'assets/images/home_img1.png', // Your decorative ellipse
+              'assets/images/home_img1.png',
               width: screenSize.width * 0.7,
               height: screenSize.height * 0.4,
               fit: BoxFit.contain,
@@ -113,11 +117,10 @@ class _NotificationPageState extends State<NotificationPage> {
           ),
         ),
         Scaffold(
-          backgroundColor: Colors.transparent, // To see the Stack background
+          backgroundColor: Colors.transparent,
           appBar: AppBar(
-            backgroundColor:
-                Colors.transparent, // AppBar blends with page background
-            elevation: 0, // No shadow for a flat look
+            backgroundColor: Colors.transparent,
+            elevation: 0,
             leading: IconButton(
               icon: Icon(Icons.arrow_back_ios_new, color: Colors.black),
               onPressed: () => Navigator.of(context).pop(),
@@ -131,8 +134,7 @@ class _NotificationPageState extends State<NotificationPage> {
               ),
             ),
             centerTitle: true,
-            systemOverlayStyle:
-                SystemUiOverlayStyle.dark, // For light background
+            systemOverlayStyle: SystemUiOverlayStyle.dark,
           ),
           body:
               _notifications.isEmpty
@@ -166,7 +168,7 @@ class _NotificationPageState extends State<NotificationPage> {
       elevation: 2.0,
       shadowColor: Colors.deepPurple.withOpacity(0.1),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
-      color: Colors.white, // Card background
+      color: Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

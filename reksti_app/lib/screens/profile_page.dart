@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart'; // Import Provider
+import 'package:provider/provider.dart';
 
-import 'dart:math' as math; // For PI
+import 'dart:math' as math;
 import 'dart:io';
 import 'package:reksti_app/user_provider.dart';
 
@@ -23,9 +23,7 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  // Set initial index to 2 for Profile page
   int _bottomNavIndex = 2;
-  // MODIFIED: State variables for profile data
 
   final TokenStorageService tokenStorage = TokenStorageService();
 
@@ -35,38 +33,34 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _triggerPickProfileImage() async {
-    // Call the provider's method to handle image picking and state update
     await Provider.of<UserProvider>(
       context,
       listen: false,
     ).pickAndSaveProfileImage();
-    // Optionally show a SnackBar from here if pickAndSaveProfileImage doesn't,
-    // or if it returns a status.
   }
 
   Widget _buildImagePlaceholder({
     double? width,
     double? height,
     IconData icon = Icons.image,
-    Color backgroundColor = const Color(0xFFE0E0E0), // Slightly darker grey
+    Color backgroundColor = const Color(0xFFE0E0E0),
     Color iconColor = const Color(0xFF9E9E9E),
   }) {
     double concreteIconSize;
 
-    // Determine a finite size for the icon
     if (width != null && width.isFinite && width > 0) {
-      concreteIconSize = width / 3.5; // Make icon smaller relative to width
+      concreteIconSize = width / 3.5;
     } else if (height != null && height.isFinite && height > 0) {
-      concreteIconSize = height / 3.5; // Or base it on height
+      concreteIconSize = height / 3.5;
     } else {
-      concreteIconSize = 24.0; // Default fallback size
+      concreteIconSize = 24.0;
     }
-    // Ensure the icon size is not excessively large if container is huge but unconstrained
-    concreteIconSize = math.min(concreteIconSize, 48.0); // Max icon size
-    concreteIconSize = math.max(16.0, concreteIconSize); // Min icon size
+
+    concreteIconSize = math.min(concreteIconSize, 48.0);
+    concreteIconSize = math.max(16.0, concreteIconSize);
 
     return Container(
-      width: width, // Container can still try to match the requested width
+      width: width,
       height: height,
       decoration: BoxDecoration(
         color: backgroundColor,
@@ -83,25 +77,21 @@ class _ProfilePageState extends State<ProfilePage> {
 
     final userProvider = Provider.of<UserProvider>(context);
 
-    return
-    // 3. Main Scaffold (Top Layer)
-    Container(
+    return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [Color(0xFFFAF4F5), Color(0xFFFFFFFF)],
         ),
       ),
       child: Scaffold(
-        backgroundColor: Colors.transparent, // To see the Stack background
+        backgroundColor: Colors.transparent,
         extendBodyBehindAppBar: true,
         appBar: PreferredSize(
-          // Use PreferredSize to remove AppBar but keep height for status bar
           preferredSize: Size.fromHeight(0),
           child: AppBar(
             backgroundColor: Colors.transparent,
             elevation: 0,
-            systemOverlayStyle:
-                SystemUiOverlayStyle.dark, // For status bar icons
+            systemOverlayStyle: SystemUiOverlayStyle.dark,
           ),
         ),
         body: SingleChildScrollView(
@@ -128,11 +118,11 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildProfileHeader(
     Size screenSize,
     double topSafeArea,
-    bool isLoading, // From provider
-    String? recipientName, // From provider
-    String? recipientAddress, // From provider
-    File? profileImageFile, // From provider
-    String profileError, // From provider
+    bool isLoading,
+    String? recipientName,
+    String? recipientAddress,
+    File? profileImageFile,
+    String profileError,
   ) {
     String displayName =
         isLoading && recipientName == null
@@ -154,14 +144,12 @@ class _ProfilePageState extends State<ProfilePage> {
 
     return Stack(
       clipBehavior: Clip.none,
-      // alignment: Alignment.topLeft,
+
       children: [
-        // Banner Image
         Container(
-          height: screenSize.height * 0.22, // Adjust height as needed
+          height: screenSize.height * 0.22,
           width: double.infinity,
           child: Image.asset(
-            // IMPORTANT: Replace with your banner image
             'assets/images/profile_banner.png',
             fit: BoxFit.cover,
             errorBuilder: (context, error, stacktrace) {
@@ -173,29 +161,23 @@ class _ProfilePageState extends State<ProfilePage> {
             },
           ),
         ),
-        // Edit Icon Button
 
-        // Profile Avatar, Name, and Address
         Positioned(
-          top:
-              screenSize.height * 0.22 -
-              50, // (Banner Height - Half of Avatar Height)
+          top: screenSize.height * 0.22 - 50,
           left: 20,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CircleAvatar(
                 radius: 50,
-                backgroundColor: Colors.deepPurple[400], // Color from image
+                backgroundColor: Colors.deepPurple[400],
                 backgroundImage:
                     profileImageFile != null && profileImageFile.existsSync()
                         ? FileImage(profileImageFile)
                         : null,
                 child:
                     profileImageFile == null
-                        ?
-                        // Initial or from user data
-                        Text(
+                        ? Text(
                           avatarLetter,
                           style: TextStyle(
                             fontSize: 48,
@@ -231,9 +213,8 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                   const SizedBox(width: 4),
                   Flexible(
-                    // To prevent overflow if address is long
                     child: Text(
-                      displayAddress, // Replace
+                      displayAddress,
                       textAlign: TextAlign.left,
                       style: TextStyle(fontSize: 11, color: Colors.grey[700]),
                     ),
@@ -257,60 +238,49 @@ class _ProfilePageState extends State<ProfilePage> {
             left: 20.0,
             right: 20.0,
             bottom: 20.0,
-          ), // Added top padding
+          ),
           child: Column(
             children: [
               _buildProfileMenuItem(
                 icon: Icons.notifications_none_outlined,
                 text: 'Notifikasi',
                 onTap: () {
-                  // TODO: Navigate to Notifikasi page
                   Navigator.push(
-                    // Or Navigator.push if you want 'back' functionality
                     context,
                     MaterialPageRoute(
                       builder: (context) => const NotificationPage(),
-                    ), // Navigate to your actual HomePage
+                    ),
                   );
                 },
               ),
               _buildProfileMenuItem(
-                icon: Icons.article_outlined, // Or a custom icon
+                icon: Icons.article_outlined,
                 text: 'Syarat dan Ketentuan',
                 onTap: () {
-                  // TODO: Navigate to Syarat dan Ketentuan page
                   Navigator.push(
-                    // Or Navigator.push if you want 'back' functionality
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => const SyaratPage(),
-                    ), // Navigate to your actual HomePage
+                    MaterialPageRoute(builder: (context) => const SyaratPage()),
                   );
                 },
               ),
               _buildProfileMenuItem(
-                icon: Icons.shield_outlined, // Or a custom icon
+                icon: Icons.shield_outlined,
                 text: 'Privacy Policy',
                 onTap: () {
-                  // TODO: Navigate to Privacy Policy page
                   Navigator.push(
-                    // Or Navigator.push if you want 'back' functionality
                     context,
                     MaterialPageRoute(
                       builder: (context) => const PrivacyPage(),
-                    ), // Navigate to your actual HomePage
+                    ),
                   );
                 },
               ),
-              const SizedBox(height: 10), // Spacer
+              const SizedBox(height: 10),
               _buildProfileMenuItem(
                 icon: Icons.logout,
                 text: 'Keluar',
-                isLogout: true, // Special styling for logout
+                isLogout: true,
                 onTap: () {
-                  // TODO: Implement logout functionality
-                  print("Keluar tapped");
-                  // Example: show confirmation dialog
                   showDialog(
                     context: context,
                     builder: (BuildContext dialogContext) {
@@ -332,24 +302,16 @@ class _ProfilePageState extends State<ProfilePage> {
                               style: TextStyle(color: Colors.red),
                             ),
                             onPressed: () async {
-                              Navigator.of(
-                                dialogContext,
-                              ).pop(); // Dismiss dialog first
-
-                              // Perform actual logout actions
+                              Navigator.of(dialogContext).pop();
 
                               await userProvider.clearProfileDataOnLogout();
 
-                              // Navigate to Login Page and remove all previous routes
-
                               if (mounted) {
-                                // Check if _ProfilePageState is still mounted
                                 Navigator.of(context).pushAndRemoveUntil(
                                   MaterialPageRoute(
                                     builder: (context) => LoginPage(),
-                                  ), // Replace with your actual LoginPage
-                                  (Route<dynamic> route) =>
-                                      false, // Remove all routes
+                                  ),
+                                  (Route<dynamic> route) => false,
                                 );
                               }
                             },
@@ -364,14 +326,8 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ),
         Positioned(
-          // Adjust 'top' to position it relative to the start of the menu list.
-          // The Padding widget above has top: 70.0.
-          // So, a top value here of around 70 - (buttonHeight/2) would place it near the top edge of the list.
-          // Let's try to place it aligned with the top of the first menu item, considering padding.
-          // Or, simply from the top of the Stack (which is aligned with the bottom of the header).
-          top:
-              10, // (padding.top - half of button approx height) to align with top of first item
-          right: 10, // Align with the right padding of the menu list
+          top: 10,
+          right: 10,
           child: Container(
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.9),
@@ -407,10 +363,8 @@ class _ProfilePageState extends State<ProfilePage> {
     bool isLogout = false,
   }) {
     final double borderRadiusValue = 12.0;
-    final double borderWidth =
-        1.5; // Thickness of the gradient border for non-logout items
+    final double borderWidth = 1.5;
 
-    // Content (Row with Icon and Text) will always have this padding
     final EdgeInsets contentPadding = const EdgeInsets.symmetric(
       horizontal: 16.0,
       vertical: 14.0,
@@ -422,10 +376,7 @@ class _ProfilePageState extends State<ProfilePage> {
         children: [
           Icon(
             icon,
-            color:
-                isLogout
-                    ? Colors.deepPurple[700]
-                    : Colors.deepPurple[400], // Adjusted logout icon color
+            color: isLogout ? Colors.deepPurple[700] : Colors.deepPurple[400],
             size: 22,
           ),
           const SizedBox(width: 16),
@@ -446,7 +397,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
 
     if (isLogout) {
-      // Logout item: Solid color background
       return Container(
         margin: const EdgeInsets.symmetric(vertical: 8.0),
         decoration: BoxDecoration(
@@ -471,15 +421,14 @@ class _ProfilePageState extends State<ProfilePage> {
           child: InkWell(
             onTap: onTap,
             borderRadius: BorderRadius.circular(borderRadiusValue),
-            child: itemContent, // Directly use the padded content
+            child: itemContent,
           ),
         ),
       );
     } else {
-      // Non-logout item: Gradient border, white background inside
       return Container(
         margin: const EdgeInsets.symmetric(vertical: 8.0),
-        padding: EdgeInsets.all(borderWidth), // This padding creates the border
+        padding: EdgeInsets.all(borderWidth),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFFCBC6F0), Color(0xFFF1C4E4)],
@@ -497,7 +446,6 @@ class _ProfilePageState extends State<ProfilePage> {
           ],
         ),
         child: Container(
-          // Inner container for white background
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(
@@ -514,7 +462,7 @@ class _ProfilePageState extends State<ProfilePage> {
               borderRadius: BorderRadius.circular(
                 borderRadiusValue - borderWidth,
               ),
-              child: itemContent, // Content is already padded
+              child: itemContent,
             ),
           ),
         ),
@@ -522,38 +470,22 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  // --- Reusing Bottom Navigation Bar from HomePage ---
   Widget _buildBottomNavigationBar() {
-    const double barHeight = 160; // Adjust to the actual height of your images
+    const double barHeight = 160;
     String currentNavBarImage;
 
     switch (_bottomNavIndex) {
-      case 0: // Home selected
-        print(
-          "Insatance of user  ${identityHashCode(Provider.of<UserProvider>(context))})",
-        );
+      case 0:
         currentNavBarImage = 'assets/images/navbar1.png';
         break;
-      case 1: // Scan selected
-        print(
-          "Insatance of user  ${identityHashCode(Provider.of<UserProvider>(context))})",
-        );
-
+      case 1:
         currentNavBarImage = 'assets/images/navbar2.png';
         break;
-      case 2: // Profile selected
-        print(
-          "Insatance of user  ${identityHashCode(Provider.of<UserProvider>(context))})",
-        );
-
+      case 2:
         currentNavBarImage = 'assets/images/navbar3.png';
         break;
       default:
-        print(
-          "Insatance of user  ${identityHashCode(Provider.of<UserProvider>(context))})",
-        );
-
-        currentNavBarImage = 'assets/images/navbar3.png'; // Default
+        currentNavBarImage = 'assets/images/navbar3.png';
     }
 
     return Container(
@@ -562,44 +494,32 @@ class _ProfilePageState extends State<ProfilePage> {
       decoration: BoxDecoration(
         image: DecorationImage(
           image: AssetImage(currentNavBarImage),
-          fit: BoxFit.cover, // Or BoxFit.fill, BoxFit.fitWidth
+          fit: BoxFit.cover,
         ),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
-        crossAxisAlignment:
-            CrossAxisAlignment.stretch, // Make InkWells fill height
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           Expanded(
             child: InkWell(
               onTap: () {
-                // setState(() => _bottomNavIndex = 0);
                 Navigator.push(
-                  // Or Navigator.push if you want 'back' functionality
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => const HomePage(),
-                  ), // Navigate to your actual HomePage
+                  MaterialPageRoute(builder: (context) => const HomePage()),
                 );
               },
-              splashColor: Colors.white.withOpacity(
-                0.1,
-              ), // Optional visual feedback
+              splashColor: Colors.white.withOpacity(0.1),
               highlightColor: Colors.white.withOpacity(0.05),
-              child:
-                  Container(), // Empty container, tap area is the Expanded widget
+              child: Container(),
             ),
           ),
           Expanded(
             child: InkWell(
               onTap: () {
-                //setState(() => _bottomNavIndex = 1);
                 Navigator.push(
-                  // Or Navigator.push if you want 'back' functionality
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => const ScanPage(),
-                  ), // Navigate to your actual ScanPage
+                  MaterialPageRoute(builder: (context) => const ScanPage()),
                 );
               },
               splashColor: Colors.white.withOpacity(0.1),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Required for SystemUiOverlayStyle
+import 'package:flutter/services.dart';
 
 class SyaratPage extends StatelessWidget {
   const SyaratPage({super.key});
@@ -31,37 +31,26 @@ class SyaratPage extends StatelessWidget {
 
   Widget _buildBulletPoint(String text) {
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        vertical: 4.0,
-      ), // Add some vertical spacing
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
-        crossAxisAlignment:
-            CrossAxisAlignment.start, // Align bullet with top of text
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text(
-            "  • ", // Standard bullet character
+            "  • ",
             style: TextStyle(
-              fontSize: 16, // Adjust size as needed
-              fontWeight: FontWeight.bold, // Optional: make bullet bold
-              color: Colors.deepPurple, // Optional: color the bullet
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.deepPurple,
             ),
           ),
 
-          // Or use an Icon:
-          // Icon(
-          //   Icons.fiber_manual_record, // A small circle icon
-          //   size: 12.0, // Adjust size
-          //   color: Colors.deepPurple, // Adjust color
-          // ),
-          // const SizedBox(width: 8.0), // Space between bullet and text
           Expanded(
-            // Use Expanded to allow text to wrap
             child: Text(
               text,
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.black87,
-                height: 1.5, // Line height for readability
+                height: 1.5,
               ),
             ),
           ),
@@ -73,23 +62,19 @@ class SyaratPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
-    final Color pageBackgroundColor = Color(
-      0xFFFAF4F5,
-    ); // Light lavender from Profile#3.jpg
+    final Color pageBackgroundColor = Color(0xFFFAF4F5);
     final Color cardBackgroundColor = Color(0xFFE8CDFD);
     return Stack(
       children: [
-        // 1. Overall Page Background Color
         Container(color: pageBackgroundColor),
 
-        // 2. Decorative Background Image (Optional)
         Positioned(
           top: 0,
           left: 0,
           child: Opacity(
-            opacity: 0.4, // More subtle for this page
+            opacity: 0.4,
             child: Image.asset(
-              'assets/images/home_img1.png', // Your decorative ellipse
+              'assets/images/home_img1.png',
               width: screenSize.width * 0.7,
               height: screenSize.height * 0.4,
               fit: BoxFit.contain,
@@ -101,13 +86,11 @@ class SyaratPage extends StatelessWidget {
           ),
         ),
 
-        // 3. Main Scaffold
         Scaffold(
-          backgroundColor: Colors.transparent, // To see the Stack background
+          backgroundColor: Colors.transparent,
           appBar: AppBar(
-            backgroundColor:
-                Colors.transparent, // AppBar blends with page background
-            elevation: 0, // No shadow for a flat look
+            backgroundColor: Colors.transparent,
+            elevation: 0,
             leading: IconButton(
               icon: Icon(Icons.arrow_back_ios_new, color: Colors.black),
               onPressed: () => Navigator.of(context).pop(),
@@ -121,8 +104,7 @@ class SyaratPage extends StatelessWidget {
               ),
             ),
             centerTitle: true,
-            systemOverlayStyle:
-                SystemUiOverlayStyle.dark, // For light background
+            systemOverlayStyle: SystemUiOverlayStyle.dark,
           ),
           body: SafeArea(
             child: SingleChildScrollView(
@@ -131,14 +113,10 @@ class SyaratPage extends StatelessWidget {
                 vertical: 20.0,
               ),
               child: Container(
-                padding: const EdgeInsets.all(
-                  20.0,
-                ), // Internal padding for the text content
+                padding: const EdgeInsets.all(20.0),
                 decoration: BoxDecoration(
                   color: cardBackgroundColor,
-                  borderRadius: BorderRadius.circular(
-                    20.0,
-                  ), // Rounded corners for the box
+                  borderRadius: BorderRadius.circular(20.0),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.deepPurple.withOpacity(0.08),
@@ -185,7 +163,7 @@ class SyaratPage extends StatelessWidget {
                     _buildBulletPoint(
                       'Lisensi terbatas diberikan untuk menggunakan aplikasi.',
                     ),
-                    const SizedBox(height: 40), // Extra space at the bottom
+                    const SizedBox(height: 40),
                     _buildParagraph(
                       'Aplikasi disediakan “sebagaimana adanya”, tanpa jaminan terkait ketersediaan atau performa, dan kami tidak bertanggung jawab atas gangguan atau downtime. Data pengguna akan diproses sesuai dengan kebijakan privasi, meskipun kami tidak dapat menjamin sepenuhnya keamanan data. Kami berhak untuk mengubah syarat dan ketentuan ini sewaktu-waktu, dengan pemberitahuan melalui aplikasi. Kami juga berhak membatasi atau menghentikan akses pengguna yang melanggar ketentuan. Syarat dan ketentuan ini diatur oleh hukum Indonesia, dan setiap perselisihan akan diselesaikan di pengadilan yang berwenang di Indonesia.',
                     ),

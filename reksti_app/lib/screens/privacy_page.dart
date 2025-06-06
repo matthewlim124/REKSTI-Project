@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Required for SystemUiOverlayStyle
+import 'package:flutter/services.dart';
 
 class PrivacyPage extends StatelessWidget {
   const PrivacyPage({super.key});
@@ -32,23 +32,19 @@ class PrivacyPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
-    final Color pageBackgroundColor = Color(
-      0xFFFAF4F5,
-    ); // Light lavender from Profile#3.jpg
+    final Color pageBackgroundColor = Color(0xFFFAF4F5);
     final Color cardBackgroundColor = Color(0xFFE8CDFD);
     return Stack(
       children: [
-        // 1. Overall Page Background Color
         Container(color: pageBackgroundColor),
 
-        // 2. Decorative Background Image (Optional)
         Positioned(
           top: 0,
           left: 0,
           child: Opacity(
-            opacity: 0.4, // More subtle for this page
+            opacity: 0.4,
             child: Image.asset(
-              'assets/images/home_img1.png', // Your decorative ellipse
+              'assets/images/home_img1.png',
               width: screenSize.width * 0.7,
               height: screenSize.height * 0.4,
               fit: BoxFit.contain,
@@ -60,13 +56,11 @@ class PrivacyPage extends StatelessWidget {
           ),
         ),
 
-        // 3. Main Scaffold
         Scaffold(
-          backgroundColor: Colors.transparent, // To see the Stack background
+          backgroundColor: Colors.transparent,
           appBar: AppBar(
-            backgroundColor:
-                Colors.transparent, // AppBar blends with page background
-            elevation: 0, // No shadow for a flat look
+            backgroundColor: Colors.transparent,
+            elevation: 0,
             leading: IconButton(
               icon: Icon(Icons.arrow_back_ios_new, color: Colors.black),
               onPressed: () => Navigator.of(context).pop(),
@@ -80,8 +74,7 @@ class PrivacyPage extends StatelessWidget {
               ),
             ),
             centerTitle: true,
-            systemOverlayStyle:
-                SystemUiOverlayStyle.dark, // For light background
+            systemOverlayStyle: SystemUiOverlayStyle.dark,
           ),
           body: SafeArea(
             child: SingleChildScrollView(
@@ -90,14 +83,10 @@ class PrivacyPage extends StatelessWidget {
                 vertical: 20.0,
               ),
               child: Container(
-                padding: const EdgeInsets.all(
-                  20.0,
-                ), // Internal padding for the text content
+                padding: const EdgeInsets.all(20.0),
                 decoration: BoxDecoration(
                   color: cardBackgroundColor,
-                  borderRadius: BorderRadius.circular(
-                    20.0,
-                  ), // Rounded corners for the box
+                  borderRadius: BorderRadius.circular(20.0),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.deepPurple.withOpacity(0.08),

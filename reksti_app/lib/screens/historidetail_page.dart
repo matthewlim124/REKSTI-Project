@@ -6,7 +6,6 @@ import 'package:reksti_app/services/logic_service.dart';
 import 'package:reksti_app/screens/historipesanan_page.dart';
 
 class HistoriDetailPage extends StatefulWidget {
-  // In a real app, you'd pass the actual Shipment object or its ID
   final ShipmentItem item;
 
   const HistoriDetailPage({super.key, required this.item});
@@ -25,8 +24,7 @@ class _HistoriDetailPageState extends State<HistoriDetailPage> {
     _estimatedArrivalDate = widget.item.shippingDate.add(
       const Duration(days: 7),
     );
-    // Assuming the page details are for the first item in the shipment
-    // In a real scenario, you might pass a specific item or the page focuses on the whole shipment
+
     if (widget.item.deliveryDate != null &&
         widget.item.deliveryDate!.isNotEmpty) {
       try {
@@ -34,14 +32,9 @@ class _HistoriDetailPageState extends State<HistoriDetailPage> {
           widget.item.deliveryDate!,
         );
       } catch (e) {
-        // If parsing actual delivery date fails, fall back to estimated
         _actualOrEstimatedDeliveryDateInfo = _estimatedArrivalDate;
-        print(
-          "Error parsing actual delivery date: ${widget.item.deliveryDate}. Using estimated.",
-        );
       }
     } else {
-      // If no actual delivery date, use the estimated one for info section as well
       _actualOrEstimatedDeliveryDateInfo = _estimatedArrivalDate;
     }
   }
@@ -140,14 +133,14 @@ class _HistoriDetailPageState extends State<HistoriDetailPage> {
 
     return Stack(
       children: [
-        Container(color: const Color(0xFFFDF6F9)), // Light pinkish background
+        Container(color: const Color(0xFFFDF6F9)),
         Positioned(
           top: -screenSize.height * 0.1,
           left: -screenSize.width * 0.2,
           child: Opacity(
             opacity: 0.6,
             child: Image.asset(
-              'assets/images/home_img1.png', // Your decorative ellipse
+              'assets/images/home_img1.png',
               width: screenSize.width * 0.9,
               height: screenSize.height * 0.5,
               fit: BoxFit.contain,
@@ -166,7 +159,7 @@ class _HistoriDetailPageState extends State<HistoriDetailPage> {
               onPressed: () => Navigator.of(context).pop(),
             ),
             title: Text(
-              widget.item.productName, // Product name as title
+              widget.item.productName,
               style: TextStyle(
                 color: Colors.black87,
                 fontWeight: FontWeight.bold,
@@ -183,13 +176,12 @@ class _HistoriDetailPageState extends State<HistoriDetailPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Product Image
                 Center(
                   child: Container(
                     height: screenSize.height * 0.25,
                     margin: const EdgeInsets.symmetric(vertical: 20.0),
                     child: Image.asset(
-                      widget.item.imagePath, // Use drug.png or path from item
+                      widget.item.imagePath,
                       fit: BoxFit.contain,
                       errorBuilder: (context, error, stackTrace) {
                         return Icon(
@@ -202,21 +194,20 @@ class _HistoriDetailPageState extends State<HistoriDetailPage> {
                   ),
                 ),
 
-                // Arrival Banner
                 Container(
                   padding: const EdgeInsets.symmetric(
                     vertical: 12.0,
                     horizontal: 16.0,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFCE0E8), // Light pink from image
+                    color: const Color(0xFFFCE0E8),
                     borderRadius: BorderRadius.circular(10.0),
                   ),
                   child: Center(
                     child: Text(
                       'Pesanan akan tiba pada ${shortDateFormat.format(_estimatedArrivalDate)}',
                       style: TextStyle(
-                        color: const Color(0xFF8C5B7B), // Darker pink text
+                        color: const Color(0xFF8C5B7B),
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
                       ),
@@ -225,7 +216,6 @@ class _HistoriDetailPageState extends State<HistoriDetailPage> {
                 ),
                 const SizedBox(height: 24),
 
-                // Info Produk Section
                 Text(
                   'Info Produk',
                   style: TextStyle(
@@ -270,13 +260,12 @@ class _HistoriDetailPageState extends State<HistoriDetailPage> {
                       _buildInfoRow(
                         'Total Produk',
                         '${widget.item.quantity} ${widget.item.productName.contains("Kardus") ? "" : (widget.item.quantity > 1 ? "pcs" : "pc")}',
-                      ), // Example logic for units
+                      ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 20),
 
-                // Status Pengiriman Section
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16.0,
@@ -309,7 +298,6 @@ class _HistoriDetailPageState extends State<HistoriDetailPage> {
                 ),
                 const SizedBox(height: 24),
 
-                // Alamat Pengiriman Section
                 Text(
                   'Alamat Pengiriman',
                   style: TextStyle(
@@ -376,7 +364,7 @@ class _HistoriDetailPageState extends State<HistoriDetailPage> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 30), // Space for bottom nav
+                const SizedBox(height: 30),
               ],
             ),
           ),
